@@ -109,7 +109,7 @@ def main():
                 text.extend(loader.load())
                 os.remove(temp_file_path)
 
-        text_splitter = CharacterTextSplitter(separator="\n", chunk_size=1024 chunk_overlap=200, length_function=len)
+        text_splitter = CharacterTextSplitter(separator="\n", chunk_size=1024, chunk_overlap=200, length_function=len)
         text_chunks = text_splitter.split_documents(text)
 
         # Create embeddings
