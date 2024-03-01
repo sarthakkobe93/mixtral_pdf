@@ -140,7 +140,7 @@ def main():
 
     # set huggingface hub token in st.text_input widget
     # then hide the input
-    huggingface_token = st.text_input("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", type="password")
+    huggingface_token = st.text_input("Enter the token", type="password")
     #openai_api_key = st.text_input("Enter your OpenAI API key", type="password")
 
     # set this key as an environment variable
