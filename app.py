@@ -95,7 +95,7 @@ def get_conversation_chain(vectorstore):
     """
     llm = HuggingFaceHub(
         repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
-        model_kwargs={"temperature": 0.5, "max_length": 1048},
+        model_kwargs={"temperature": 0.0, "max_length": 1048},
     )
     # llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613")
 
@@ -140,7 +140,7 @@ def main():
 
     # set huggingface hub token in st.text_input widget
     # then hide the input
-    huggingface_token = st.text_input("Enter your HuggingFace Hub token", type="password")
+    huggingface_token = st.text_input("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", type="password")
     #openai_api_key = st.text_input("Enter your OpenAI API key", type="password")
 
     # set this key as an environment variable
