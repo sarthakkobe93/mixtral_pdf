@@ -1,10 +1,3 @@
-"""
-Question Answering with Retrieval QA and LangChain Language Models featuring FAISS vector stores.
-This script uses the LangChain Language Model API to answer questions using Retrieval QA 
-and FAISS vector stores. It also uses the Mistral huggingface inference endpoint to 
-generate responses.
-"""
-
 import os
 import streamlit as st
 from dotenv import load_dotenv
@@ -18,19 +11,10 @@ from langchain.chains import ConversationalRetrievalChain
 from htmlTemplates import css, bot_template, user_template
 from langchain.llms import HuggingFaceHub
 
+# set this key as an environment variable
+os.environ["HUGGINGFACEHUB_API_TOKEN"] = st.secrets['huggingface_token']
 
-def get_pdf_text(pdf_docs):
-    """
-    Extract text from a list of PDF documents.
-    Parameters
-    ----------
-    pdf_docs : list
-        List of PDF documents to extract text from.
-    Returns
-    -------
-    str
-        Extracted text from all the PDF documents.
-    """
+def get_pdf_text(pdf_docs : list) -> str:
     text = ""
     for pdf in pdf_docs:
         pdf_reader = PdfReader(pdf)
@@ -39,18 +23,7 @@ def get_pdf_text(pdf_docs):
     return text
 
 
-def get_text_chunks(text):
-    """
-    Split the input text into chunks.
-    Parameters
-    ----------
-    text : str
-        The input text to be split.
-    Returns
-    -------
-    list
-        List of text chunks.
-    """
+def get_text_chunks(text:str) ->list:
     text_splitter = CharacterTextSplitter(
         separator="\n", chunk_size=1500, chunk_overlap=300, length_function=len
     )
@@ -58,19 +31,8 @@ def get_text_chunks(text):
     return chunks
 
 
-def get_vectorstore(text_chunks):
-    """
-    Generate a vector store from a list of text chunks using HuggingFace BgeEmbeddings.
-    Parameters
-    ----------
-    text_chunks : list
-        List of text chunks to be embedded.
-    Returns
-    -------
-    FAISS
-        A FAISS vector store containing the embeddings of the text chunks.
-    """
-    model = "BAAI/bge-base-en-v1.5"
+def get_vectorstore(text_chunks : list) -> FAISS:
+    model = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     encode_kwargs = {
         "normalize_embeddings": True
     }  # set True to compute cosine similarity
@@ -81,23 +43,13 @@ def get_vectorstore(text_chunks):
     return vectorstore
 
 
-def get_conversation_chain(vectorstore):
-    """
-    Create a conversational retrieval chain using a vector store and a language model.
-    Parameters
-    ----------
-    vectorstore : FAISS
-        A FAISS vector store containing the embeddings of the text chunks.
-    Returns
-    -------
-    ConversationalRetrievalChain
-        A conversational retrieval chain for generating responses.
-    """
+def get_conversation_chain(vectorstore:FAISS) -> ConversationalRetrievalChain:
+    # llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613")
     llm = HuggingFaceHub(
         repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
-        model_kwargs={"temperature": 0.0, "max_length": 1048},
+        #repo_id="TheBloke/Mixtral-8x7B-Instruct-v0.1-GGUF"
+        model_kwargs={"temperature": 0.5, "max_length": 1048},
     )
-    # llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613")
 
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
     conversation_chain = ConversationalRetrievalChain.from_llm(
@@ -106,28 +58,18 @@ def get_conversation_chain(vectorstore):
     return conversation_chain
 
 
-def handle_userinput(user_question):
-    """
-    Handle user input and generate a response using the conversational retrieval chain.
-    Parameters
-    ----------
-    user_question : str
-        The user's question.
-    """
+def handle_userinput(user_question:str):
     response = st.session_state.conversation({"question": user_question})
     st.session_state.chat_history = response["chat_history"]
 
     for i, message in enumerate(st.session_state.chat_history):
         if i % 2 == 0:
-            st.write("//_^ User: " + message.content)
+            st.write("   Usuario: " + message.content)
         else:
             st.write("🤖 ChatBot: " + message.content)
 
 
 def main():
-    """
-    Putting it all together.
-    """
     st.set_page_config(
         page_title="Chat with a Bot that tries to answer questions about multiple PDFs",
         page_icon=":books:",
@@ -138,26 +80,19 @@ def main():
 
     st.write(css, unsafe_allow_html=True)
 
-    # set huggingface hub token in st.text_input widget
-    # then hide the input
-    huggingface_token = st.text_input("Enter the token", type="password")
-    #openai_api_key = st.text_input("Enter your OpenAI API key", type="password")
-
-    # set this key as an environment variable
-    os.environ["HUGGINGFACEHUB_API_TOKEN"] = huggingface_token
-    #os.environ["OPENAI_API_KEY"] = openai_api_key
-
-
+    
     if "conversation" not in st.session_state:
         st.session_state.conversation = None
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = None
 
+    
     st.header("Chat with a Bot 🤖🦾 that tries to answer questions about multiple PDFs :books:")
     user_question = st.text_input("Ask a question about your documents:")
     if user_question:
         handle_userinput(user_question)
 
+    
     with st.sidebar:
         st.subheader("Your documents")
         pdf_docs = st.file_uploader(
