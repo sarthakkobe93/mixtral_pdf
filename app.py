@@ -1,117 +1,129 @@
-import os
 import streamlit as st
-from dotenv import load_dotenv
-from PyPDF2 import PdfReader
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings import HuggingFaceBgeEmbeddings
-from langchain.vectorstores import FAISS
-from langchain.chat_models import ChatOpenAI
-from langchain.memory import ConversationBufferMemory
+from streamlit_chat import message
 from langchain.chains import ConversationalRetrievalChain
-from htmlTemplates import css, bot_template, user_template
-from langchain.llms import HuggingFaceHub
-
-# set this key as an environment variable
-os.environ["HUGGINGFACEHUB_API_TOKEN"] = st.secrets['huggingface_token']
-
-def get_pdf_text(pdf_docs : list) -> str:
-    text = ""
-    for pdf in pdf_docs:
-        pdf_reader = PdfReader(pdf)
-        for page in pdf_reader.pages:
-            text += page.extract_text()
-    return text
-
-
-def get_text_chunks(text:str) ->list:
-    text_splitter = CharacterTextSplitter(
-        separator="\n", chunk_size=1500, chunk_overlap=300, length_function=len
-    )
-    chunks = text_splitter.split_text(text)
-    return chunks
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.llms import HuggingFacePipeline
+from langchain import PromptTemplate, LLMChain
+from langchain.llms import CTransformers
+from langchain.llms import Replicate
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.vectorstores import FAISS
+from langchain.memory import ConversationBufferMemory
+from langchain.document_loaders import PyPDFLoader
+from langchain.document_loaders import TextLoader
+from langchain.document_loaders import Docx2txtLoader
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+import os
+from dotenv import load_dotenv
+import tempfile
 
 
-def get_vectorstore(text_chunks : list) -> FAISS:
-    model = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-    encode_kwargs = {
-        "normalize_embeddings": True
-    }  # set True to compute cosine similarity
-    embeddings = HuggingFaceBgeEmbeddings(
-        model_name=model, encode_kwargs=encode_kwargs, model_kwargs={"device": "cpu"}
-    )
-    vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
-    return vectorstore
+load_dotenv()
 
 
-def get_conversation_chain(vectorstore:FAISS) -> ConversationalRetrievalChain:
-    # llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613")
-    llm = HuggingFaceHub(
-        repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
-        #repo_id="TheBloke/Mixtral-8x7B-Instruct-v0.1-GGUF"
-        model_kwargs={"temperature": 0.5, "max_length": 1048},
-    )
+def initialize_session_state():
+    if 'history' not in st.session_state:
+        st.session_state['history'] = []
 
+    if 'generated' not in st.session_state:
+        st.session_state['generated'] = ["Hello! Ask me anything about"]
+
+    if 'past' not in st.session_state:
+        st.session_state['past'] = ["Hey!"]
+
+def conversation_chat(query, chain, history):
+    result = chain({"question": query, "chat_history": history})
+    history.append((query, result["answer"]))
+    return result["answer"]
+
+def display_chat_history(chain):
+    reply_container = st.container()
+    container = st.container()
+
+    with container:
+        with st.form(key='my_form', clear_on_submit=True):
+            user_input = st.text_input("Question:", placeholder="Ask about your Documents", key='input')
+            submit_button = st.form_submit_button(label='Send')
+
+        if submit_button and user_input:
+            with st.spinner('Generating response...'):
+                output = conversation_chat(user_input, chain, st.session_state['history'])
+
+            st.session_state['past'].append(user_input)
+            st.session_state['generated'].append(output)
+
+    if st.session_state['generated']:
+        with reply_container:
+            for i in range(len(st.session_state['generated'])):
+                message(st.session_state["past"][i], is_user=True, key=str(i) + '_user', avatar_style="thumbs")
+                message(st.session_state["generated"][i], key=str(i), avatar_style="fun-emoji")
+
+def create_conversational_chain(vector_store):
+    load_dotenv()
+    # Create llm
+    
+
+    #llm = CTransformers(model="llama-2-7b-chat.ggmlv3.q4_0.bin",
+                        #streaming=True, 
+                        #callbacks=[StreamingStdOutCallbackHandler()],
+                        #model_type="llama", config={'max_new_tokens': 500, 'temperature': 0.01})
+    llm = Replicate(
+        streaming = True,
+        model = "mistralai/mixtral-8x7b-instruct-v0.1:cf18decbf51c27fed6bbdc3492312c1c903222a56e3fe9ca02d6cbe5198afc10",
+        callbacks=[StreamingStdOutCallbackHandler()],
+        input = {"temperature": 0.0, "max_length" :4096,"top_p":1})
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-    conversation_chain = ConversationalRetrievalChain.from_llm(
-        llm=llm, retriever=vectorstore.as_retriever(), memory=memory
-    )
-    return conversation_chain
 
-
-def handle_userinput(user_question:str):
-    response = st.session_state.conversation({"question": user_question})
-    st.session_state.chat_history = response["chat_history"]
-
-    for i, message in enumerate(st.session_state.chat_history):
-        if i % 2 == 0:
-            st.write("   Usuario: " + message.content)
-        else:
-            st.write("🤖 ChatBot: " + message.content)
-
+    chain = ConversationalRetrievalChain.from_llm(llm=llm, chain_type='stuff',
+                                                 retriever=vector_store.as_retriever(search_kwargs={"k": 2}),
+                                                 memory=memory)
+    return chain
 
 def main():
-    st.set_page_config(
-        page_title="Chat with a Bot that tries to answer questions about multiple PDFs",
-        page_icon=":books:",
-    )
+    load_dotenv()
+    # Initialize session state
+    initialize_session_state()
+    st.title("Multi-Docs(.pdf, .docx and .txt) ChatBot using Mistral 7b")
+    # Initialize Streamlit
+    st.sidebar.title("Document Processing")
+    uploaded_files = st.sidebar.file_uploader("Upload files", accept_multiple_files=True)
 
-    st.markdown("# Chat with a Bot")
-    st.markdown("This bot tries to answer questions about multiple PDFs. Let the processing of the PDF finish before adding your question. 🙏🏾")
 
-    st.write(css, unsafe_allow_html=True)
+    if uploaded_files:
+        text = []
+        for file in uploaded_files:
+            file_extension = os.path.splitext(file.name)[1]
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                temp_file.write(file.read())
+                temp_file_path = temp_file.name
 
-    
-    if "conversation" not in st.session_state:
-        st.session_state.conversation = None
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = None
+            loader = None
+            if file_extension == ".pdf":
+                loader = PyPDFLoader(temp_file_path)
+            elif file_extension == ".docx" or file_extension == ".doc":
+                loader = Docx2txtLoader(temp_file_path)
+            elif file_extension == ".txt":
+                loader = TextLoader(temp_file_path)
 
-    
-    st.header("Chat with a Bot 🤖🦾 that tries to answer questions about multiple PDFs :books:")
-    user_question = st.text_input("Ask a question about your documents:")
-    if user_question:
-        handle_userinput(user_question)
+            if loader:
+                text.extend(loader.load())
+                os.remove(temp_file_path)
 
-    
-    with st.sidebar:
-        st.subheader("Your documents")
-        pdf_docs = st.file_uploader(
-            "Upload your PDFs here and click on 'Process'", accept_multiple_files=True
-        )
-        if st.button("Process"):
-            with st.spinner("Processing"):
-                # get pdf text
-                raw_text = get_pdf_text(pdf_docs)
+        text_splitter = CharacterTextSplitter(separator="\n", chunk_size=1024 chunk_overlap=200, length_function=len)
+        text_chunks = text_splitter.split_documents(text)
 
-                # get the text chunks
-                text_chunks = get_text_chunks(raw_text)
+        # Create embeddings
+        embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2", 
+                                           model_kwargs={'device': 'cpu'})
 
-                # create vector store
-                vectorstore = get_vectorstore(text_chunks)
+        # Create vector store
+        vector_store = FAISS.from_documents(text_chunks, embedding=embeddings)
 
-                # create conversation chain
-                st.session_state.conversation = get_conversation_chain(vectorstore)
+        # Create the chain object
+        chain = create_conversational_chain(vector_store)
 
+        
+        display_chat_history(chain)
 
 if __name__ == "__main__":
     main()
