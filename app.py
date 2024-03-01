@@ -83,7 +83,7 @@ def main():
     load_dotenv()
     # Initialize session state
     initialize_session_state()
-    st.title("Multi-Docs(.pdf, .docx and .txt) ChatBot using Mistral 7b")
+    st.title("Multi-Docs(.pdf, .docx and .txt) ChatBot using MiXtral 8x7b")
     # Initialize Streamlit
     st.sidebar.title("Document Processing")
     uploaded_files = st.sidebar.file_uploader("Upload files", accept_multiple_files=True)
