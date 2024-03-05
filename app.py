@@ -134,7 +134,7 @@ def sidebar():
             documents and get accurate answers with citations."""
         )
 
-        st.markdown("Created with ❤️ by Krishna Kumar Yadav")
+        st.markdown("Created by Sarthak")
         st.markdown(
             """
             - [Github](https://github.com/sarthakkobe93)
