@@ -75,31 +75,7 @@ def init_state() :
        
         
 
-def faq():
-    st.markdown(
-        """
-        # FAQ
-        ## How does Document Q&A Bot work?
-        When you upload a document (in Pdf, word, csv or txt format), it will be divided into smaller chunks 
-        and stored in a special type of database called a vector index 
-        that allows for semantic search and retrieval.
-        When you ask a question, our Q&A bot will first look through the document chunks and find the
-        most relevant ones using the vector index. This acts as a context to our custom prompt which will be feed to the LLM model.
-        If the context was not found in the document then, LLM will reply 'I don't know'
-        ## Is my data safe?
-        Yes, your data is safe. Our bot does not store your documents or
-        questions. All uploaded data is deleted after you close the browser tab.
-        ## Why does it take so long to index my document?
-        Since, this is a sample QA bot project that uses open-source model
-        and doesn't have much resource capabilities like GPU, it may take time 
-        to index your document based on the size of the document.
-        ## Are the answers 100% accurate?
-        No, the answers are not 100% accurate. 
-        But for most use cases, our QA bot is very accurate and can answer
-        most questions. Always check with the sources to make sure that the answers
-        are correct.
-        """
-    )
+
 
 
 def sidebar():
@@ -137,7 +113,7 @@ def sidebar():
             """
         )
 
-        faq()
+        
         return retriever
 
 
