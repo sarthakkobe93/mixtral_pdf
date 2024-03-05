@@ -130,13 +130,10 @@ def sidebar():
             documents and get accurate answers with citations."""
         )
 
-        st.markdown("Created with ❤️ by Krishna Kumar Yadav")
+        st.markdown("Created by Infy")
         st.markdown(
             """
-            - [Email](mailto:krishna158@live.com)
-            - [LinkedIn](https://www.linkedin.com/in/devkrish23/)
-            - [Github](https://github.com/devkrish23)
-            - [LeetCode](https://leetcode.com/KrishnaKumar23/)
+            - [Github](https://github.com/sarthakkobe93)
             """
         )
 
