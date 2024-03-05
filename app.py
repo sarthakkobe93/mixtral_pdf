@@ -126,7 +126,7 @@ def generate_chat_stream(prompt, retriever) :
     
     with st.spinner("Fetching relevant answers from source document..."):
         response, sources = st.session_state.llm_object.mixtral_chat_inference(prompt, st.session_state.history, st.session_state.temperature, retriever)
-                                                                               #st.session_state.top_p, st.session_state.repetition_penalty, 
+                                                                                
     
         
     return response, sources
