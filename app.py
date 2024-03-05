@@ -99,19 +99,18 @@ def sidebar():
         st.session_state.uploaded_file = st.file_uploader("Upload a file", type=["pdf", "doc", "docx", "txt"])
         _, retriever = index_document(st.session_state.llm_object, st.session_state.uploaded_file)
         
-        st.markdown("---")
-        st.markdown("# About")
-        st.markdown(
-            """QA bot 🤖 allows you to ask questions about your 
-            documents and get accurate answers with citations."""
-        )
+       # st.markdown("---")
+        #st.markdown("# About")
+       # st.markdown(
+  #          """QA bot 🤖 """
+        #)
 
-        st.markdown("Created by Infy")
-        st.markdown(
-            """
-            - [Github](https://github.com/sarthakkobe93)
-            """
-        )
+        #st.markdown("Created by Infy")
+        #st.markdown(
+           # """
+           # - [Github](https://github.com/sarthakkobe93)
+          #  """
+        #)
 
         
         return retriever
