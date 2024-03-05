@@ -35,11 +35,10 @@ def index_document(_llm_object, uploaded_file):
 
         with st.spinner("Indexing document... This is a free CPU version and may take a while ⏳"):
             retriever = _llm_object.create_vector_db(file_name)
-            st.session_state.retriever = retriever
-            
-        return file_name
+                        
+        return file_name, retriever
     else:
-        return None
+        return None, None
 
 
 def load_lottieurl(url: str):
@@ -68,11 +67,12 @@ def init_state() :
     if "history" not in st.session_state:
         st.session_state.history = [SYSTEM_PROMPT]
 
-    if "repetion_penalty" not in st.session_state :
+    if "repetion_penalty" not in st.session_state:
         st.session_state.repetion_penalty = 1
 
-    if "chat_bot" not in st.session_state :
+    if "chat_bot" not in st.session_state:
         st.session_state.chat_bot = "Mixtral-8x7B-Instruct-v0.1"
+       
         
 
 def faq():
@@ -83,20 +83,16 @@ def faq():
         When you upload a document (in Pdf, word, csv or txt format), it will be divided into smaller chunks 
         and stored in a special type of database called a vector index 
         that allows for semantic search and retrieval.
-
         When you ask a question, our Q&A bot will first look through the document chunks and find the
         most relevant ones using the vector index. This acts as a context to our custom prompt which will be feed to the LLM model.
         If the context was not found in the document then, LLM will reply 'I don't know'
-
         ## Is my data safe?
         Yes, your data is safe. Our bot does not store your documents or
         questions. All uploaded data is deleted after you close the browser tab.
-
         ## Why does it take so long to index my document?
         Since, this is a sample QA bot project that uses open-source model
         and doesn't have much resource capabilities like GPU, it may take time 
         to index your document based on the size of the document.
-
         ## Are the answers 100% accurate?
         No, the answers are not 100% accurate. 
         But for most use cases, our QA bot is very accurate and can answer
@@ -125,7 +121,7 @@ def sidebar():
         st.markdown("---")
         # Upload file through Streamlit
         st.session_state.uploaded_file = st.file_uploader("Upload a file", type=["pdf", "doc", "docx", "txt"])
-        index_document(st.session_state.llm_object, st.session_state.uploaded_file)
+        _, retriever = index_document(st.session_state.llm_object, st.session_state.uploaded_file)
         
         st.markdown("---")
         st.markdown("# About")
@@ -134,14 +130,18 @@ def sidebar():
             documents and get accurate answers with citations."""
         )
 
-        st.markdown("Created by Sarthak")
+        st.markdown("Created with ❤️ by Krishna Kumar Yadav")
         st.markdown(
             """
-            - [Github](https://github.com/sarthakkobe93)
+            - [Email](mailto:krishna158@live.com)
+            - [LinkedIn](https://www.linkedin.com/in/devkrish23/)
+            - [Github](https://github.com/devkrish23)
+            - [LeetCode](https://leetcode.com/KrishnaKumar23/)
             """
         )
 
         faq()
+        return retriever
 
 
 def chat_box() :
@@ -150,11 +150,11 @@ def chat_box() :
             st.markdown(message["content"])
             
 
-def generate_chat_stream(prompt) :
+def generate_chat_stream(prompt, retriever) :
     
     with st.spinner("Fetching relevant answers from source document..."):
         response, sources = st.session_state.llm_object.mixtral_chat_inference(prompt, st.session_state.history, st.session_state.temperature, 
-                                                                               st.session_state.top_p, st.session_state.repetition_penalty, st.session_state.retriever)
+                                                                               st.session_state.top_p, st.session_state.repetition_penalty, retriever)
     
         
     return response, sources
@@ -183,15 +183,15 @@ def load_model():
     return llm_model.LlmModel()
 
 st.set_page_config(page_title="Document QA Bot")
-lottie_book = load_lottieurl("https://assets4.lottiefiles.com/temp/lf20_aKAfIn.json")
-st_lottie(lottie_book, speed=1, height=200, key="initial")
+#lottie_book = load_lottieurl("https://assets4.lottiefiles.com/temp/lf20_aKAfIn.json")
+#st_lottie(lottie_book, speed=1, height=200, key="initial")
 # Place the title below the Lottie animation
 st.title("Document Q&A Bot 🤖")
 
 # initialize session state for streamlit app
 init_state()
 # Left Sidebar
-sidebar()
+retriever = sidebar()
 chat_box()
 
 if prompt := st.chat_input("Ask a question about your document!"):
@@ -199,7 +199,7 @@ if prompt := st.chat_input("Ask a question about your document!"):
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     try:
-        chat_stream, sources = generate_chat_stream(prompt)
+        chat_stream, sources = generate_chat_stream(prompt, retriever)
   
         with st.chat_message("assistant"):
             placeholder = st.empty()
