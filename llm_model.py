@@ -52,7 +52,7 @@ class LlmModel:
                                   " Page: " + str(source.metadata['page']))            
         return source_results
         
-    def mixtral_chat_inference(self, prompt, history, temperature, top_p, repetition_penalty, retriever):
+    def mixtral_chat_inference(self, prompt, history, temperature, retriever):
         
         context = retriever.get_relevant_documents(prompt)
         sources = self.format_sources(context)
@@ -67,8 +67,8 @@ class LlmModel:
         generate_kwargs = dict(
                             temperature = temperature,
                             max_new_tokens = 512,
-                            top_p = top_p,
-                            repetition_penalty = repetition_penalty,
+                            #top_p = top_p,
+                            #repetition_penalty = repetition_penalty,
                             do_sample = True
                             )
         
