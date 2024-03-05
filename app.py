@@ -67,8 +67,8 @@ def init_state() :
     if "history" not in st.session_state:
         st.session_state.history = [SYSTEM_PROMPT]
 
-    if "repetion_penalty" not in st.session_state:
-        st.session_state.repetion_penalty = 1
+    #if "repetion_penalty" not in st.session_state:
+       # st.session_state.repetion_penalty = 1
 
     if "chat_bot" not in st.session_state:
         st.session_state.chat_bot = "Mixtral-8x7B-Instruct-v0.1"
@@ -89,8 +89,8 @@ def sidebar():
         st.session_state.model_name = 'Mixtral-8x7B-Instruct-v0.1'
         # set model temperature
         st.session_state.temperature = st.slider(label="Temperature", min_value=0.0, max_value=1.0, step=0.1, value=0.7)
-        st.session_state.top_p = st.slider(label="Top Probablity", min_value=0.0, max_value=1.0, step=0.1, value=0.95)
-        st.session_state.repetition_penalty = st.slider(label="Repetition Penalty", min_value=0.0, max_value=1.0, step=0.1, value=1.0)
+        #st.session_state.top_p = st.slider(label="Top Probablity", min_value=0.0, max_value=1.0, step=0.1, value=0.95)
+        #st.session_state.repetition_penalty = st.slider(label="Repetition Penalty", min_value=0.0, max_value=1.0, step=0.1, value=1.0)
         
         # load model parameters
         st.session_state.llm_object = load_model()
@@ -125,8 +125,7 @@ def chat_box() :
 def generate_chat_stream(prompt, retriever) :
     
     with st.spinner("Fetching relevant answers from source document..."):
-        response, sources = st.session_state.llm_object.mixtral_chat_inference(prompt, st.session_state.history, st.session_state.temperature, 
-                                                                               st.session_state.top_p, st.session_state.repetition_penalty, retriever)
+        response, sources = st.session_state.llm_object.mixtral_chat_inference(prompt, st.session_state.history, st.session_state.temperature,retriever)
                                                                                 
     
         
