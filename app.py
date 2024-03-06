@@ -158,7 +158,7 @@ st.set_page_config(page_title="Document QA Bot")
 #lottie_book = load_lottieurl("https://assets4.lottiefiles.com/temp/lf20_aKAfIn.json")
 #st_lottie(lottie_book, speed=1, height=200, key="initial")
 # Place the title below the Lottie animation
-st.title("Document Q&A Bot 🤖")
+st.title(" Pdf Document Q&A Bot 🤖")
 
 # initialize session state for streamlit app
 init_state()
