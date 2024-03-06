@@ -96,7 +96,7 @@ def sidebar():
         st.session_state.llm_object = load_model()
         st.markdown("---")
         # Upload file through Streamlit
-        st.session_state.uploaded_file = st.file_uploader("Upload a file", type=["pdf", "txt"])
+        st.session_state.uploaded_file = st.file_uploader("Upload a file", type=["pdf"])
         _, retriever = index_document(st.session_state.llm_object, st.session_state.uploaded_file)
         
        # st.markdown("---")
