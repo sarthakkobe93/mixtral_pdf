@@ -33,7 +33,7 @@ def index_document(_llm_object, uploaded_file):
         file_name = os.path.join(assets_folder, uploaded_file.name)
         st.success(f"File '{file_name}' uploaded !")
 
-        with st.spinner("Indexing document... This is a free CPU version and may take a while ⏳"):
+        with st.spinner("Indexing document... This may take a while ⏳"):
             retriever = _llm_object.create_vector_db(file_name)
                         
         return file_name, retriever
