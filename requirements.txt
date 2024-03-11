@@ -2,12 +2,12 @@ langchain==0.0.284
 python-dotenv==1.0.0
 tiktoken==0.4.0
 faiss-cpu==1.7.4
-protobuf
+protobuf~=3.19.0
+requests==2.27.1
 pypdf
-google-generativeai
 InstructorEmbedding
 sentence-transformers
-streamlit==1.24.0 
+streamlit
 streamlit_lottie
 frontend
 tools
