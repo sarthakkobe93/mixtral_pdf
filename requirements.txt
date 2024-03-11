@@ -2,7 +2,7 @@ langchain==0.0.284
 python-dotenv==1.0.0
 tiktoken==0.4.0
 faiss-cpu==1.7.4
-protobuf~=3.19.0
+protobuf
 requests==2.27.1
 pypdf
 InstructorEmbedding
