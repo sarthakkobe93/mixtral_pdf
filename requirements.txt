@@ -8,12 +8,12 @@ pypdf
 InstructorEmbedding
 sentence-transformers
 streamlit==1.24.0
-#streamlit_lottie
-streamlit-lottie
+streamlit_lottie
+#streamlit-lottie
 frontend
 tools
 docx2txt
 fitz
 huggingface_hub
-llama-parse
-nest-asyncio
+#llama-parse
+#nest-asyncio
