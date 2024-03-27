@@ -8,7 +8,8 @@ pypdf
 InstructorEmbedding
 sentence-transformers
 streamlit==1.24.0
-streamlit_lottie
+#streamlit_lottie
+streamlit-lottie
 frontend
 tools
 docx2txt
