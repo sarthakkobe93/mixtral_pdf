@@ -11,12 +11,10 @@ from dotenv import load_dotenv
 import nest_asyncio
 nest_asyncio.apply()
 
-from llama_parse import LlamaParse
+#from llama_parse import LlamaParse
 
-parser = LlamaParse(
-    api_key="llx-Ikxz2852sn9H76PhlQX19HCrsZRJDaRN9MgjWyI8XsmyXyoK",  # can also be set in your env as LLAMA_CLOUD_API_KEY
-    result_type="markdown"  # "markdown" and "text" are available
-)
+
+
 vector_index_path = "assets/vectordb"
 
 class LlmModel:
@@ -65,7 +63,7 @@ class LlmModel:
         context = retriever.get_relevant_documents(prompt)
         sources = self.format_sources(context)
         # use hugging face infrence api
-        client = InferenceClient("mistralai/Mixtral-8x7B-Instruct-v0.1",
+        client = InferenceClient("mistralai/Mistral-7B-Instruct-v0.1",
                                     token="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"
                                 )
         temperature = float(temperature)
@@ -97,8 +95,8 @@ class LlmModel:
     def create_vector_db(self, filename):
 
         if filename.endswith(".pdf"):
-            documents = parser.load_data(file_path=filename)
-            #loader = PyPDFLoader(file_path=filename)
+           # documents = parser.load_data(file_path=filename)
+            loader = PyPDFLoader(file_path=filename)
         elif filename.endswith(".doc") or filename.endswith(".docx"):
             loader = Docx2txtLoader(filename)
         elif filename.endswith("txt") or filename.endswith("TXT"):
@@ -106,7 +104,7 @@ class LlmModel:
 
         # Split documents
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=100)
-        splits = text_splitter.split_documents(documents)
+        splits = text_splitter.split_documents(loader.load())
 
         # Create a FAISS instance for vector database from 'data'
         vectordb = FAISS.from_documents(documents = splits,
