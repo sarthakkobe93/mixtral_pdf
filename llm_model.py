@@ -8,7 +8,15 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from huggingface_hub import InferenceClient
 import os
 from dotenv import load_dotenv
+import nest_asyncio
+nest_asyncio.apply()
 
+from llama_parse import LlamaParse
+
+parser = LlamaParse(
+    api_key="llx-Ikxz2852sn9H76PhlQX19HCrsZRJDaRN9MgjWyI8XsmyXyoK",  # can also be set in your env as LLAMA_CLOUD_API_KEY
+    result_type="markdown"  # "markdown" and "text" are available
+)
 vector_index_path = "assets/vectordb"
 
 class LlmModel:
@@ -88,16 +96,17 @@ class LlmModel:
  
     def create_vector_db(self, filename):
 
-        if filename.endswith(".pdf"):    
-            loader = PyPDFLoader(file_path=filename)
+        if filename.endswith(".pdf"):
+            documents = parser.load_data(file_path=filename)
+            #loader = PyPDFLoader(file_path=filename)
         elif filename.endswith(".doc") or filename.endswith(".docx"):
             loader = Docx2txtLoader(filename)
         elif filename.endswith("txt") or filename.endswith("TXT"):
             loader = TextLoader(filename)
 
         # Split documents
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-        splits = text_splitter.split_documents(loader.load())
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=100)
+        splits = text_splitter.split_documents(documents)
 
         # Create a FAISS instance for vector database from 'data'
         vectordb = FAISS.from_documents(documents = splits,
