@@ -11,9 +11,12 @@ from dotenv import load_dotenv
 import nest_asyncio
 nest_asyncio.apply()
 
-#from llama_parse import LlamaParse
+from llama_parse import LlamaParse
 
-
+parser = LlamaParse(
+    api_key="llx-3IAfxbazxV3LtCbJRLx5T081bCI8Z6UQWyYA9pGZsLKfdrrm",
+    result_type="markdown"  
+)
 
 vector_index_path = "assets/vectordb"
 
@@ -63,7 +66,7 @@ class LlmModel:
         context = retriever.get_relevant_documents(prompt)
         sources = self.format_sources(context)
         # use hugging face infrence api
-        client = InferenceClient("mistralai/Mistral-7B-Instruct-v0.1",
+        client = InferenceClient("mistralai/Mixtral-8x7B-Instruct-v0.1",
                                     token="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"
                                 )
         temperature = float(temperature)
@@ -72,7 +75,7 @@ class LlmModel:
             
         generate_kwargs = dict(
                             temperature = temperature,
-                            max_new_tokens = 512,
+                            max_new_tokens = 4096,
                             #top_p = top_p,
                             #repetition_penalty = repetition_penalty,
                             do_sample = True
@@ -95,16 +98,16 @@ class LlmModel:
     def create_vector_db(self, filename):
 
         if filename.endswith(".pdf"):
-           # documents = parser.load_data(file_path=filename)
-            loader = PyPDFLoader(file_path=filename)
+            docs = parser.load_data(file_path=filename)
+            #loader = PyPDFLoader(file_path=filename)
         elif filename.endswith(".doc") or filename.endswith(".docx"):
             loader = Docx2txtLoader(filename)
         elif filename.endswith("txt") or filename.endswith("TXT"):
             loader = TextLoader(filename)
 
         # Split documents
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=100)
-        splits = text_splitter.split_documents(loader.load())
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=2048, chunk_overlap=200)
+        splits = text_splitter.split_documents(docs)
 
         # Create a FAISS instance for vector database from 'data'
         vectordb = FAISS.from_documents(documents = splits,
