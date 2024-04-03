@@ -86,7 +86,7 @@ def sidebar():
                
         st.markdown("### Set Model Parameters")
         # select LLM model
-        st.session_state.model_name = 'Mistral-7B-Instruct-v0.1'
+        st.session_state.model_name = 'Mixtral-8x7B-Instruct-v0.1'
         # set model temperature
         st.session_state.temperature = st.slider(label="Temperature", min_value=0.0, max_value=1.0, step=0.1, value=0.7)
         #st.session_state.top_p = st.slider(label="Top Probablity", min_value=0.0, max_value=1.0, step=0.1, value=0.95)
