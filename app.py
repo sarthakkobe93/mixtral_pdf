@@ -81,7 +81,7 @@ def init_state() :
 def sidebar():
     with st.sidebar:
         st.markdown("## Pdf Document Q&A Bot")
-        st.write("LLM: Mistral-7B-Instruct-v0.1")
+        st.write("LLM: Mixtral-8x7B-Instruct-v0.1")
         #st.success('API key already provided!', icon='✅')
                
         st.markdown("### Set Model Parameters")
