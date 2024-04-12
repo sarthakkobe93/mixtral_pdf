@@ -58,7 +58,7 @@ class LlmModel:
         context = retriever.get_relevant_documents(prompt)
         sources = self.format_sources(context)
         # use hugging face infrence api
-        client = InferenceClient("mistralai/Mixtral-8x7B-Instruct-v0.1",
+        client = InferenceClient("mistral-community/Mixtral-8x22B-v0.1",
                                     token="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"
                                 )
         temperature = float(temperature)
