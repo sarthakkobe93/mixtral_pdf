@@ -59,7 +59,7 @@ class LlmModel:
         sources = self.format_sources(context)
         # use hugging face infrence api
         client = InferenceClient("mistralai/Mixtral-8x7B-Instruct-v0.1",
-                                    token="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"
+                                    token="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"
                                 )
         temperature = float(temperature)
         if temperature < 1e-2:
