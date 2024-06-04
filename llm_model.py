@@ -98,7 +98,7 @@ class LlmModel:
             loader = TextLoader(filename)
 
         # Split documents
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=2048, chunk_overlap=200)
         splits = text_splitter.split_documents(loader.load())
 
         # Create a FAISS instance for vector database from 'data'
